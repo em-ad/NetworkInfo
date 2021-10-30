@@ -2,6 +2,8 @@ package com.emad.networkinfo
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.telephony.TelephonyManager
@@ -31,11 +33,28 @@ import kotlin.coroutines.coroutineContext
 
 class MainActivity : ComponentActivity() {
 
-    @SuppressLint("HardwareIds", "MissingPermission", "NewApi")
+    var data: ArrayList<String> = ArrayList()
+    lateinit var serviceIntent: Intent
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        extractCellData()
+        serviceIntent = Intent(applicationContext, TelephonyService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent)
+        } else startService(serviceIntent)
+        setContent {
+            NetworkInfoTheme {
+                Surface(color = Color.LightGray) {
+                    displayListData(data = data)
+                }
+            }
+        }
+    }
+
+    @SuppressLint("HardwareIds", "MissingPermission", "NewApi")
+    private fun extractCellData() {
         val telephonyMgr = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-        var data: ArrayList<String> = ArrayList()
         telephonyMgr.allCellInfo?.let {
             for (i in 0 until it.size) {
                 if (it[i].cellIdentity.operatorAlphaLong.isNullOrEmpty()) continue
@@ -50,17 +69,12 @@ class MainActivity : ComponentActivity() {
                 data.add("rssnr: " + takeInfo(it[i].toString(), "rssnr"))
                 data.add("cqi: " + takeInfo(it[i].toString(), "cqi"))
             }
-            for (item in it) {
+        }
+    }
 
-            }
-        }
-        setContent {
-            NetworkInfoTheme {
-                Surface(color = Color.LightGray) {
-                    displayListData(data = data)
-                }
-            }
-        }
+    override fun onStop() {
+        super.onStop()
+        stopService(serviceIntent)
     }
 }
 
