@@ -7,7 +7,7 @@ import android.telephony.ims.ImsReasonInfo
 import android.util.Log
 import com.google.gson.Gson
 
-@SuppressLint("MissingPermission")
+@SuppressLint("MissingPermission", "NewApi")
 class MyPhoneStateListener {
     companion object listener: PhoneStateListener() {
         private val TAG = "TAG"
@@ -18,7 +18,7 @@ class MyPhoneStateListener {
 
         override fun onSignalStrengthsChanged(signalStrength: SignalStrength?) {
             super.onSignalStrengthsChanged(signalStrength)
-            Log.e("TAG", "onSignalStrengthsChanged: " + Gson().toJson(signalStrength) )
+            Log.e("TAG", "onSignalStrengthsChanged: " + signalStrength )
         }
 
         override fun onCellLocationChanged(location: CellLocation?) {
@@ -29,11 +29,6 @@ class MyPhoneStateListener {
         override fun onServiceStateChanged(serviceState: ServiceState?) {
             super.onServiceStateChanged(serviceState)
             Log.e("TAG", "onServiceStateChanged: " + serviceState )
-        }
-
-        override fun onSignalStrengthChanged(asu: Int) {
-            super.onSignalStrengthChanged(asu)
-            Log.e("TAG", "onSignalStrengthChanged: " + asu )
         }
 
         override fun onMessageWaitingIndicatorChanged(mwi: Boolean) {
@@ -53,17 +48,17 @@ class MyPhoneStateListener {
 
         override fun onDataConnectionStateChanged(state: Int) {
             super.onDataConnectionStateChanged(state)
-            Log.e(TAG, "onDataConnectionStateChanged: " + state )
+            Log.e(TAG, "onDataConnectionStateChanged: " + EnumConverter.convertConnectionStateEnum(state) )
         }
 
         override fun onDataConnectionStateChanged(state: Int, networkType: Int) {
             super.onDataConnectionStateChanged(state, networkType)
-            Log.e(TAG, "onDataConnectionStateChanged: " + state + " " + networkType )
+            Log.e(TAG, "onDataConnectionStateChanged: " + EnumConverter.convertConnectionStateEnum(state) + " NETWORK TYPE:" + networkType )
         }
 
         override fun onDataActivity(direction: Int) {
             super.onDataActivity(direction)
-            Log.e(TAG, "onDataActivity: " + direction )
+            Log.e(TAG, "onDataActivity: " + EnumConverter.convertDataActivityEnum(direction) )
         }
 
         override fun onCallDisconnectCauseChanged(disconnectCause: Int, preciseDisconnectCause: Int) {
@@ -125,7 +120,7 @@ class MyPhoneStateListener {
 
         fun listenEvents(): Int{
             return LISTEN_CELL_INFO or
-                    LISTEN_SIGNAL_STRENGTH or
+                    LISTEN_SIGNAL_STRENGTHS or
                     LISTEN_CELL_LOCATION or
                     LISTEN_SERVICE_STATE or
                     LISTEN_ACTIVE_DATA_SUBSCRIPTION_ID_CHANGE or
