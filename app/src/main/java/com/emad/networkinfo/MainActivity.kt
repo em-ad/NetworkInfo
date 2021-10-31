@@ -74,7 +74,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onStop() {
         super.onStop()
-        stopService(serviceIntent)
+//        stopService(serviceIntent)
     }
 }
 
