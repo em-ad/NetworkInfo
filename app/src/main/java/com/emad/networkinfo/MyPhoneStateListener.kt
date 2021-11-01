@@ -23,10 +23,13 @@ class MyPhoneStateListener {
             super.onCellInfoChanged(cellInfo)
             if (cellInfo == null || cellInfo.size == 0)
                 return
-            val cellInfoModel = CellInfoModel()
-            cellInfoModel.operator = cellInfo[0].cellIdentity.operatorAlphaShort.toString()
-            cellInfoModel.rscp = EnumConverter.takeInfo(cellInfo[0].toString(), "rscp")
-            callback.updateNotification(cellInfoModel)
+            for (i in 0 until cellInfo.size) {
+                val cellInfoModel = CellInfoModel()
+                cellInfoModel.operator = cellInfo[i].cellIdentity.operatorAlphaShort.toString()
+                cellInfoModel.rscp = EnumConverter.takeInfo(cellInfo[i].toString(), "rscp")
+                cellInfoModel.id = i
+                callback.updateNotification(cellInfoModel)
+            }
             Log.e("TAG", "onCellInfoChanged: " + cellInfo)
         }
 
@@ -34,9 +37,12 @@ class MyPhoneStateListener {
             super.onSignalStrengthsChanged(signalStrength)
             if (signalStrength == null || signalStrength.cellSignalStrengths.size == 0)
                 return
-            val cellInfoModel = CellInfoModel()
-            cellInfoModel.rssi = signalStrength.cellSignalStrengths[0].dbm.toString() + "dbm"
-            callback.updateNotification(cellInfo = cellInfoModel)
+            for (i in 0 until signalStrength.cellSignalStrengths.size) {
+                val cellInfoModel = CellInfoModel()
+                cellInfoModel.rssi = signalStrength.cellSignalStrengths[i].dbm.toString() + "dbm"
+                cellInfoModel.id = i;
+                callback.updateNotification(cellInfo = cellInfoModel)
+            }
             Log.e("TAG", "onSignalStrengthsChanged: " + signalStrength)
         }
 
@@ -47,10 +53,10 @@ class MyPhoneStateListener {
 
         override fun onServiceStateChanged(serviceState: ServiceState?) {
             super.onServiceStateChanged(serviceState)
-            val cellInfoModel = CellInfoModel()
-            cellInfoModel.technology =
-                EnumConverter.takeInfo(serviceState.toString(), "accessNetworkTechnology")
-            callback.updateNotification(cellInfo = cellInfoModel)
+//            val cellInfoModel = CellInfoModel()
+//            cellInfoModel.technology =
+//                EnumConverter.takeInfo(serviceState.toString(), "accessNetworkTechnology")
+//            callback.updateNotification(cellInfo = cellInfoModel)
             Log.e("TAG", "onServiceStateChanged: " + serviceState)
         }
 
@@ -88,9 +94,9 @@ class MyPhoneStateListener {
         override fun onDataActivity(direction: Int) {
             super.onDataActivity(direction)
             Log.e(TAG, "onDataActivity: " + EnumConverter.convertDataActivityEnum(direction))
-            val cellInfoModel = CellInfoModel()
-            cellInfoModel.connected = direction != 0
-            callback.updateNotification(cellInfo = cellInfoModel)
+//            val cellInfoModel = CellInfoModel()
+//            cellInfoModel.connected = direction != 0
+//            callback.updateNotification(cellInfo = cellInfoModel)
         }
 
         override fun onCallDisconnectCauseChanged(

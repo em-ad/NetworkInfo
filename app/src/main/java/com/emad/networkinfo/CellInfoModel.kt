@@ -17,6 +17,11 @@ class CellInfoModel : Serializable {
             this.connected = cellInfo.connected
     }
 
+    fun isTheSameAs(cellInfo: CellInfoModel): Boolean {
+        return cellInfo.id == this.id
+    }
+
+    var id: Int? = null
     var operator: String? = null
     var rssi: String? = null //Signal Strength
     var rscp: String? = null //Signal Power

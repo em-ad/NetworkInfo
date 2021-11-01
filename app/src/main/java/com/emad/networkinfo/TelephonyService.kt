@@ -4,19 +4,10 @@ import android.annotation.SuppressLint
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.os.Build
-import android.os.CountDownTimer
 import android.os.IBinder
 import android.telephony.*
 import android.telephony.PhoneStateListener.*
-import android.telephony.emergency.EmergencyNumber
-import android.telephony.ims.ImsReasonInfo
-import android.util.Log
-import com.google.gson.Gson
-import java.util.concurrent.Executor
 
-import java.security.Permission
-import java.security.Permissions
 import android.app.NotificationManager
 
 
@@ -27,7 +18,7 @@ class TelephonyService: Service(), NotificationUpdater {
 
     private val TAG = "TAG"
     private val thread = Thread()
-    private lateinit var currentCellInfo: CellInfoModel
+    private lateinit var currentCellInfo: ArrayList<CellInfoModel>
 
     override fun onBind(p0: Intent?): IBinder? {
         return null //not supporting binder service
@@ -52,11 +43,26 @@ class TelephonyService: Service(), NotificationUpdater {
 
     override fun updateNotification(cellInfo: CellInfoModel) {
         thread.run {
-            if(this@TelephonyService::currentCellInfo.isInitialized) {
-                currentCellInfo.updateInfo(cellInfo)
-            } else currentCellInfo = cellInfo
+            updateCurrentList(cellInfo);
             val mNotificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
             mNotificationManager.notify(113, NotificationMaker.makeNotification(applicationContext, currentCellInfo))
+        }
+    }
+
+    private fun updateCurrentList(cellInfo: CellInfoModel) {
+        if(!this::currentCellInfo.isInitialized) {
+            currentCellInfo = ArrayList()
+            currentCellInfo.add(cellInfo)
+            return
+        }
+        for (i in 0 until currentCellInfo.size){
+            if(currentCellInfo[i].isTheSameAs(cellInfo)){
+                var info = cellInfo
+                info.updateInfo(currentCellInfo[i])
+                currentCellInfo.removeAt(i)
+                currentCellInfo.add(info)
+                break
+            }
         }
     }
 }
