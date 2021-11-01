@@ -11,6 +11,8 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.PRIORITY_MAX
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getSystemService
+import android.widget.RemoteViews
+
 
 class NotificationMaker {
     companion object {
@@ -36,7 +38,7 @@ class NotificationMaker {
             return notification
         }
 
-        fun makeNotification(context: Context, content: String): Notification {
+        fun makeNotification(context: Context, cellInfo: CellInfoModel): Notification {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && channelId == "")
                 channelId = createNotificationChannel(
                     context = context,
@@ -46,11 +48,21 @@ class NotificationMaker {
 
             val notificationBuilder = NotificationCompat.Builder(context, channelId)
 
+            val contentView = RemoteViews(context.packageName, R.layout.notification_view)
+            contentView.setTextViewText(R.id.textView_operator, "اپراتور: " + cellInfo.operator)
+            contentView.setTextViewText(R.id.textView_rssi, "قدرت سیگنال: " + cellInfo.rssi)
+            contentView.setTextViewText(R.id.textView_rsrq, "توان اتصال: " + cellInfo.rscp)
+            contentView.setTextViewText(R.id.textView_technology, "نوع اتصال: " + cellInfo.technology)
+            if(cellInfo.connected != null && cellInfo.connected == true){
+                contentView.setImageViewResource(R.id.imageView_connection_status, R.drawable.indicator_on)
+            } else {
+                contentView.setImageViewResource(R.id.imageView_connection_status, R.drawable.indicator_off)
+            }
             val notification = notificationBuilder.setOngoing(true)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setPriority(PRIORITY_MAX)
                 .setChannelId(channelId)
-                .setContentText(content)
+                .setContent(contentView)
                 .setCategory(Notification.CATEGORY_SERVICE)
                 .build()
 

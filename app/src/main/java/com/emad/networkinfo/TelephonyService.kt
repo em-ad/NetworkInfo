@@ -17,12 +17,17 @@ import java.util.concurrent.Executor
 
 import java.security.Permission
 import java.security.Permissions
+import android.app.NotificationManager
+
+
+
 
 @SuppressLint("MissingPermission", "NewApi")
-class TelephonyService: Service() {
+class TelephonyService: Service(), NotificationUpdater {
 
     private val TAG = "TAG"
     private val thread = Thread()
+    private lateinit var currentCellInfo: CellInfoModel
 
     override fun onBind(p0: Intent?): IBinder? {
         return null //not supporting binder service
@@ -36,12 +41,22 @@ class TelephonyService: Service() {
         thread.run { this@TelephonyService.startForeground(113, NotificationMaker.makeNotification(applicationContext)) }
         thread.run {
             val telephonyMgr = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-            telephonyMgr.listen(MyPhoneStateListener.listener, MyPhoneStateListener.listenEvents())
+            telephonyMgr.listen(MyPhoneStateListener.addListener(this@TelephonyService), MyPhoneStateListener.listenEvents())
         }
         return super.onStartCommand(intent, flags, startId)
     }
 
     override fun onDestroy() { //end of service
         super.onDestroy()
+    }
+
+    override fun updateNotification(cellInfo: CellInfoModel) {
+        thread.run {
+            if(this@TelephonyService::currentCellInfo.isInitialized) {
+                currentCellInfo.updateInfo(cellInfo)
+            } else currentCellInfo = cellInfo
+            val mNotificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            mNotificationManager.notify(113, NotificationMaker.makeNotification(applicationContext, currentCellInfo))
+        }
     }
 }

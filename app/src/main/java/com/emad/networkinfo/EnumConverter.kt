@@ -21,5 +21,12 @@ class EnumConverter {
                 else -> "DATA_DISCONNECTED"
             }
         }
+        fun takeInfo(source: String, target: String): String? {
+            if (source.isNullOrEmpty() || target.isNullOrEmpty() || !source.contains(target)) return null;
+            return source.substring(
+                source.indexOf(target) + target.length + 1,
+                source.indexOf(" ", source.indexOf(target))
+            )
+        }
     }
 }

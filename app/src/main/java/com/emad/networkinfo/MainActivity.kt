@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.emad.networkinfo.EnumConverter.Companion.takeInfo
 import com.emad.networkinfo.ui.theme.NetworkInfoTheme
 import com.google.gson.Gson
 import kotlin.coroutines.coroutineContext
@@ -74,7 +75,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onStop() {
         super.onStop()
-        stopService(serviceIntent)
+//        stopService(serviceIntent)
     }
 }
 
@@ -93,7 +94,8 @@ fun displayListData(data: List<String>) {
         )
         LazyColumn(modifier = Modifier.fillMaxSize(1F)) {
             items(data) { item ->
-                DoubleCellInfoText(item.substring(0, item.indexOf(":")), item.substring(item.indexOf(":") + 1))
+                CellInfoText(item)
+//                DoubleCellInfoText(item.substring(0, item.indexOf(":")), item.substring(item.indexOf(":") + 1))
             }
         }
     }
@@ -139,13 +141,7 @@ fun MainScreen(telephonyMgr: TelephonyManager? = null) {
     }
 }
 
-fun takeInfo(source: String, target: String): String? {
-    if (source.isNullOrEmpty() || target.isNullOrEmpty() || !source.contains(target)) return null;
-    return source.substring(
-        source.indexOf(target) + target.length + 1,
-        source.indexOf(" ", source.indexOf(target))
-    )
-}
+
 
 @Preview
 @Composable
