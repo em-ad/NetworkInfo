@@ -6,13 +6,10 @@ import android.app.NotificationManager
 import android.content.Context
 import android.graphics.Color
 import android.os.Build
-import android.util.Log
-import android.view.LayoutInflater
 import android.widget.RemoteViews
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.PRIORITY_MAX
-import com.google.gson.Gson
 
 
 class NotificationMaker {
@@ -53,9 +50,11 @@ class NotificationMaker {
             val contentView = RemoteViews(context.packageName, R.layout.root_notification_view)
             contentView.removeAllViews(R.id.ll_root)
                 val innerContentView = RemoteViews(context.packageName, R.layout.notification_view)
-                innerContentView.setTextViewText(R.id.textView_operator, "اپراتور پیشفرض: " + cellInfo.operator + " " + cellInfo.id)
+                innerContentView.setTextViewText(R.id.textView_operator, "اپراتور پیشفرض: " + cellInfo.operator)
+                innerContentView.setTextViewText(R.id.textView_level, "میزان آنتن: " + cellInfo.level)
+                innerContentView.setTextViewText(R.id.textView_unknown, "کد جهانی اپراتور: " + cellInfo.mnc)
                 innerContentView.setTextViewText(R.id.textView_rssi, "قدرت سیگنال: " + cellInfo.rssi)
-                innerContentView.setTextViewText(R.id.textView_rsrq, "توان اتصال: " + cellInfo.rscp)
+                innerContentView.setTextViewText(R.id.textView_rsrq, "توان اتصال: " + cellInfo.rsrq)
                 innerContentView.setTextViewText(R.id.textView_technology, "نوع اتصال: " + cellInfo.technology)
                 if(cellInfo.connected != null && cellInfo.connected == true){
                     innerContentView.setImageViewResource(R.id.imageView_connection_status, R.drawable.indicator_on)
@@ -70,6 +69,8 @@ class NotificationMaker {
                 .setChannelId(channelId)
                 .setContent(contentView)
                 .setCategory(Notification.CATEGORY_SERVICE)
+                .setDefaults(Notification.DEFAULT_LIGHTS or Notification.DEFAULT_SOUND)
+                .setVibrate(longArrayOf(0L))
                 .build()
 
             return notification

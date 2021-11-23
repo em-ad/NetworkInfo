@@ -21,6 +21,15 @@ class EnumConverter {
                 else -> "DATA_DISCONNECTED"
             }
         }
+        fun convertLevel(i: String) : String{
+            return when(i){
+                "0" -> "خیلی ضعیف"
+                "1" -> "ضعیف"
+                "2" -> "متوسط"
+                "4" -> "قوی"
+                else -> "خیلی ضعیف"
+            }
+        }
         fun takeInfo(source: String, target: String): String? {
             if (source.isNullOrEmpty() || target.isNullOrEmpty() || !source.contains(target)) return "-1";
             return source.substring(

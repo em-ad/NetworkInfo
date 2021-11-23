@@ -3,11 +3,9 @@ package com.emad.networkinfo
 import android.annotation.SuppressLint
 import android.content.Context
 import android.telephony.*
-import android.telephony.emergency.EmergencyNumber
 import android.telephony.ims.ImsReasonInfo
 import android.util.Log
 import android.telephony.PhoneStateListener
-import com.google.gson.Gson
 
 @SuppressLint("MissingPermission", "NewApi")
 class MyPhoneStateListener {
@@ -20,19 +18,19 @@ class MyPhoneStateListener {
         fun addListener(context: Context, callback: NotificationUpdater): PhoneStateListener {
             this.callback = callback
             val localSubscriptionManager = SubscriptionManager.from(context)
-            var sim0 = localSubscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(0)
-            var sim1 = localSubscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(1)
-            Log.e(TAG, "addListener: \n" + sim0.toString() + "\n" + sim1.toString() )
-            localList = localSubscriptionManager.completeActiveSubscriptionInfoList
-            for(i in localList.indices){
-                val cellInfoModel = CellInfoModel()
-                cellInfoModel.operator = localList[i].displayName.toString()
-                cellInfoModel.technology = localList[i].number
-                cellInfoModel.mnc = localList[i].mnc
-                cellInfoModel.id = localList.size - i - 1
-//                cellInfoModel.activated = localList[i]
-                listener.callback.updateNotification(cellInfoModel)
-            }
+//            var sim0 = localSubscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(0)
+//            var sim1 = localSubscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(1)
+//            Log.e(TAG, "addListener: \n" + sim0.toString() + "\n" + sim1.toString() )
+//            localList = localSubscriptionManager.completeActiveSubscriptionInfoList
+//            for(i in localList.indices){
+//                val cellInfoModel = CellInfoModel()
+//                cellInfoModel.operator = localList[i].displayName.toString()
+//                cellInfoModel.technology = localList[i].number
+//                cellInfoModel.mnc = localList[i].mnc
+//                cellInfoModel.id = localList.size - i - 1
+////                cellInfoModel.activated = localList[i]
+//                listener.callback.updateNotification(cellInfoModel)
+//            }
                 return listener;
         }
 
@@ -42,17 +40,21 @@ class MyPhoneStateListener {
                 return
             for (i in 0 until cellInfo.size) {
                 val cellInfoModel = CellInfoModel()
-                for(j in localList.indices){
-                    if((localList[j] as SubscriptionInfo).mncString == EnumConverter.takeInfo(cellInfo[i].cellIdentity.toString(), "mMnc")){
-                        cellInfoModel.operator = (localList[j] as SubscriptionInfo).displayName.toString()
-//                        cellInfoModel.id = j
-                        }
-                }
+//                for(j in localList.indices){
+//                    if((localList[j] as SubscriptionInfo).mncString == EnumConverter.takeInfo(cellInfo[i].cellIdentity.toString(), "mMnc")){
+//                        cellInfoModel.operator = (localList[j] as SubscriptionInfo).displayName.toString()
+////                        cellInfoModel.id = j
+//                        }
+//                }
+                cellInfoModel.operator = EnumConverter.takeInfo(cellInfo[i].toString(), "mAlphaShort")
                 if (cellInfoModel.operator.isNullOrBlank()) continue
-                cellInfoModel.rscp = EnumConverter.takeInfo(cellInfo[i].toString(), "rscp")
+                cellInfoModel.rsrq = EnumConverter.takeInfo(cellInfo[i].toString(), "rsrq")
+                EnumConverter.takeInfo(cellInfo[i].toString(), "level")?.let{
+                    cellInfoModel.level = EnumConverter.convertLevel(it)
+                }
                 cellInfoModel.connected = cellInfo[i].cellConnectionStatus > 0
                 cellInfoModel.activated = cellInfo[i].isRegistered
-                cellInfoModel.mnc = Integer.parseInt(EnumConverter.takeInfo(cellInfo[i].cellIdentity.toString(), "mnc"))
+                cellInfoModel.mnc = Integer.parseInt(EnumConverter.takeInfo(cellInfo[i].cellIdentity.toString(), "mMnc"))
                 cellInfoModel.mEarfcn = Integer.parseInt(EnumConverter.takeInfo(cellInfo[i].cellIdentity.toString(), "mEarfcn"))
                 callback.updateNotification(cellInfoModel)
             }

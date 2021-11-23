@@ -7,7 +7,8 @@ class CellInfoModel() : Serializable {
     constructor(cellInfo: CellInfoModel) : this() {
         this.connected = cellInfo.connected
         this.rssi = cellInfo.rssi
-        this.rscp = cellInfo.rscp
+        this.rsrq = cellInfo.rsrq
+        this.level = cellInfo.level
         this.id = cellInfo.id
         this.operator = cellInfo.operator
         this.technology = cellInfo.technology
@@ -19,19 +20,21 @@ class CellInfoModel() : Serializable {
     fun updateInfo(cellInfo: CellInfoModel) {
         if (!cellInfo.operator.isNullOrBlank())
             this.operator = cellInfo.operator
-        if (!cellInfo.rssi.isNullOrBlank())
+        if (!cellInfo.rssi.isNullOrBlank() && cellInfo.rssi != "-1")
             this.rssi = cellInfo.rssi
-        if (!cellInfo.rscp.isNullOrBlank())
-            this.rscp = cellInfo.rscp
+        if (!cellInfo.level.isNullOrBlank() && cellInfo.level != "-1")
+            this.level = cellInfo.level
+        if (!cellInfo.rsrq.isNullOrBlank() && cellInfo.rsrq != "-1")
+            this.rsrq = cellInfo.rsrq
         if (!cellInfo.technology.isNullOrBlank())
             this.technology = cellInfo.technology
-        if (cellInfo.connected != null)
+        if (cellInfo.connected != null && cellInfo.connected!!)
             this.connected = cellInfo.connected
         if (cellInfo.activated != null)
             this.activated = cellInfo.activated
-        if (cellInfo.mEarfcn != null)
+        if (cellInfo.mEarfcn != null && cellInfo.mEarfcn != -1)
             this.mEarfcn = cellInfo.mEarfcn
-        if (cellInfo.mnc != null)
+        if (cellInfo.mnc != null && cellInfo.mnc != -1)
             this.mnc = cellInfo.mnc
     }
 
@@ -44,7 +47,8 @@ class CellInfoModel() : Serializable {
     var id: Int? = null
     var operator: String? = null
     var rssi: String? = null //Signal Strength
-    var rscp: String? = null //Signal Power
+    var rsrq: String? = null //Signal Power
+    var level: String? = null //Signal Power
     var technology: String? = null //Connection Technology
     var connected: Boolean? = null //Internet Connection
     var activated: Boolean? = null //Sim In Use for Data

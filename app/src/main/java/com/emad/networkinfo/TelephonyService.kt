@@ -89,7 +89,7 @@ class TelephonyService : Service(), NotificationUpdater {
             if (currentCellInfo.activated != null && currentCellInfo.activated!!) {
                 var info = CellInfoModel(currentCellInfo)
                 info.updateInfo(cellInfo)
-                currentCellInfo = cellInfo
+                currentCellInfo = info
             }
         }
 
