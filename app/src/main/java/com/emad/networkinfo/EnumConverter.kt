@@ -22,7 +22,7 @@ class EnumConverter {
             }
         }
         fun takeInfo(source: String, target: String): String? {
-            if (source.isNullOrEmpty() || target.isNullOrEmpty() || !source.contains(target)) return null;
+            if (source.isNullOrEmpty() || target.isNullOrEmpty() || !source.contains(target)) return "-1";
             return source.substring(
                 source.indexOf(target) + target.length + 1,
                 source.indexOf(" ", source.indexOf(target))

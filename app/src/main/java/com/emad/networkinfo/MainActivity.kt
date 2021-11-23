@@ -7,6 +7,8 @@ import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.telephony.TelephonyManager
+import android.telephony.TelephonyManager.SIM_STATE_READY
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
@@ -19,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
@@ -31,6 +34,10 @@ import com.emad.networkinfo.EnumConverter.Companion.takeInfo
 import com.emad.networkinfo.ui.theme.NetworkInfoTheme
 import com.google.gson.Gson
 import kotlin.coroutines.coroutineContext
+import android.telephony.SubscriptionInfo
+
+import android.telephony.SubscriptionManager
+
 
 class MainActivity : ComponentActivity() {
 
@@ -55,12 +62,18 @@ class MainActivity : ComponentActivity() {
 
     @SuppressLint("HardwareIds", "MissingPermission", "NewApi")
     private fun extractCellData() {
+        val localSubscriptionManager = SubscriptionManager.from(this)
+        val localList: List<*> = localSubscriptionManager.activeSubscriptionInfoList
         val telephonyMgr = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         telephonyMgr.allCellInfo?.let {
             for (i in 0 until it.size) {
-                if (it[i].cellIdentity.operatorAlphaLong.isNullOrEmpty()) continue
+                if (telephonyMgr.getSimState(i) != SIM_STATE_READY) continue
                 data.add("OPERATOR SLOT: " + (i + 1))
-                data.add("operator: " + it[i].cellIdentity.operatorAlphaLong.toString())
+                if (localList.size <= i) {
+                    data.add("operator: " + it[i].cellIdentity.operatorAlphaLong.toString())
+                } else {
+                    data.add("operator: " + (localList[(localList[i] as SubscriptionInfo).simSlotIndex] as SubscriptionInfo).displayName)
+                }
                 data.add("signal strength: " + it[i].cellSignalStrength.dbm + "dbm")
                 data.add("signal level: " + it[i].cellSignalStrength.level)
                 data.add("asu level: " + it[i].cellSignalStrength.asuLevel)
@@ -71,6 +84,19 @@ class MainActivity : ComponentActivity() {
                 data.add("cqi: " + takeInfo(it[i].toString(), "cqi"))
             }
         }
+
+//        if (localSubscriptionManager.activeSubscriptionInfoCount > 1) {
+//            //if there are two sims in dual sim mobile
+//            val localList: List<*> = localSubscriptionManager.activeSubscriptionInfoList
+//            val simInfo = localList[0] as SubscriptionInfo
+//            val simInfo1 = localList[1] as SubscriptionInfo
+//            val sim1 = simInfo.displayName.toString()
+//            val sim2 = simInfo1.displayName.toString()
+//
+//            Log.e("TAG", "extractCellData: $sim1 $sim2")
+//        }//        telephonyMgr.carrierConfig.keySet().forEach {
+//            Log.e("TAG", "extractCellData: " + it )
+//        }
     }
 
     override fun onStop() {
@@ -140,7 +166,6 @@ fun MainScreen(telephonyMgr: TelephonyManager? = null) {
         }
     }
 }
-
 
 
 @Preview

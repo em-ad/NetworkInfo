@@ -9,12 +9,12 @@ import android.telephony.*
 import android.telephony.PhoneStateListener.*
 
 import android.app.NotificationManager
-
-
+import android.util.Log
+import com.google.gson.Gson
 
 
 @SuppressLint("MissingPermission", "NewApi")
-class TelephonyService: Service(), NotificationUpdater {
+class TelephonyService : Service(), NotificationUpdater {
 
     private val TAG = "TAG"
     private val thread = Thread()
@@ -28,11 +28,22 @@ class TelephonyService: Service(), NotificationUpdater {
         super.onCreate()
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int { //second thing called after oncreate when service is called
-        thread.run { this@TelephonyService.startForeground(113, NotificationMaker.makeNotification(applicationContext)) }
+    override fun onStartCommand(
+        intent: Intent?,
+        flags: Int,
+        startId: Int
+    ): Int { //second thing called after oncreate when service is called
         thread.run {
+            this@TelephonyService.startForeground(
+                113,
+                NotificationMaker.makeNotification(applicationContext)
+            )
             val telephonyMgr = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-            telephonyMgr.listen(MyPhoneStateListener.addListener(this@TelephonyService), MyPhoneStateListener.listenEvents())
+            Log.e(TAG, "onStartCommand: " + telephonyMgr.allCellInfo)
+            telephonyMgr.listen(
+                MyPhoneStateListener.addListener(this@TelephonyService, this@TelephonyService),
+                MyPhoneStateListener.listenEvents()
+            )
         }
         return super.onStartCommand(intent, flags, startId)
     }
@@ -41,28 +52,82 @@ class TelephonyService: Service(), NotificationUpdater {
         super.onDestroy()
     }
 
-    override fun updateNotification(cellInfo: CellInfoModel) {
+    override fun askSimCount(): Int {
         thread.run {
-            updateCurrentList(cellInfo);
-            val mNotificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-            mNotificationManager.notify(113, NotificationMaker.makeNotification(applicationContext, currentCellInfo))
+            return if (this@TelephonyService::currentCellInfo.isInitialized)
+                currentCellInfo.size
+            else 0
         }
     }
 
-    private fun updateCurrentList(cellInfo: CellInfoModel) {
-        if(!this::currentCellInfo.isInitialized) {
-            currentCellInfo = ArrayList()
-            currentCellInfo.add(cellInfo)
-            return
+    override fun updateNotification(cellInfo: CellInfoModel) {
+        thread.run {
+
+            if (this@TelephonyService::currentCellInfo.isInitialized)
+                Log.e(
+                    TAG,
+                    "updateNotification: " + Gson().toJson(cellInfo) + " among " + Gson().toJson(
+                        currentCellInfo
+                    )
+                )
+
+//            if (cellInfo.activated == null || !cellInfo.activated!!) {
+                updateCurrentList(cellInfo)
+//            } else {
+//                updateActivatedItem(cellInfo)
+//            }
+            val mNotificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            mNotificationManager.notify(
+                113,
+                NotificationMaker.makeNotification(applicationContext, currentCellInfo)
+            )
         }
-        for (i in 0 until currentCellInfo.size){
-            if(currentCellInfo[i].isTheSameAs(cellInfo)){
-                var info = cellInfo
-                info.updateInfo(currentCellInfo[i])
-                currentCellInfo.removeAt(i)
-                currentCellInfo.add(info)
-                break
+    }
+
+    private fun updateActivatedItem(cellInfo: CellInfoModel) {
+        thread.run {
+            if (!this@TelephonyService::currentCellInfo.isInitialized) {
+                currentCellInfo = ArrayList()
+                currentCellInfo.add(cellInfo)
+                return
+            }
+            for (i in 0 until currentCellInfo.size) {
+                if (currentCellInfo[i].activated != null && currentCellInfo[i].activated!!) {
+                    var info = CellInfoModel(currentCellInfo[i])
+                    info.updateInfo(cellInfo)
+                    currentCellInfo.removeAt(i)
+                    currentCellInfo.add(i, info)
+                    break
+                }
             }
         }
+
+    }
+
+    private fun updateCurrentList(cellInfo: CellInfoModel) {
+//        if(cellInfo.id == null) return
+        thread.run {
+            if (!this@TelephonyService::currentCellInfo.isInitialized) {
+                currentCellInfo = ArrayList()
+                currentCellInfo.add(cellInfo)
+                return
+            }
+            var found = false
+            for (i in 0 until currentCellInfo.size) {
+                found = false
+                if (currentCellInfo[i].isTheSameAs(cellInfo)) {
+                    found = true
+                    val info = CellInfoModel(currentCellInfo[i])
+                    info.updateInfo(cellInfo)
+                    currentCellInfo.removeAt(i)
+                    currentCellInfo.add(i, info)
+                    break
+                }
+            }
+            if (!found && !cellInfo.operator.isNullOrBlank())
+                currentCellInfo.add(cellInfo)
+
+        }
+
     }
 }

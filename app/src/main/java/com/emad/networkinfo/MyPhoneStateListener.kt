@@ -1,22 +1,39 @@
 package com.emad.networkinfo
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.telephony.*
 import android.telephony.emergency.EmergencyNumber
 import android.telephony.ims.ImsReasonInfo
 import android.util.Log
+import android.telephony.PhoneStateListener
 import com.google.gson.Gson
 
 @SuppressLint("MissingPermission", "NewApi")
 class MyPhoneStateListener {
 
     companion object listener : PhoneStateListener() {
-        private val TAG = "TAG"
+        private const val TAG = "TAG"
         lateinit var callback: NotificationUpdater
+        lateinit var localList: List<SubscriptionInfo>
 
-        fun addListener(callback: NotificationUpdater): PhoneStateListener {
+        fun addListener(context: Context, callback: NotificationUpdater): PhoneStateListener {
             this.callback = callback
-            return listener;
+            val localSubscriptionManager = SubscriptionManager.from(context)
+            var sim0 = localSubscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(0)
+            var sim1 = localSubscriptionManager.getActiveSubscriptionInfoForSimSlotIndex(1)
+            Log.e(TAG, "addListener: \n" + sim0.toString() + "\n" + sim1.toString() )
+            localList = localSubscriptionManager.completeActiveSubscriptionInfoList
+            for(i in localList.indices){
+                val cellInfoModel = CellInfoModel()
+                cellInfoModel.operator = localList[i].displayName.toString()
+                cellInfoModel.technology = localList[i].number
+                cellInfoModel.mnc = localList[i].mnc
+                cellInfoModel.id = localList.size - i - 1
+//                cellInfoModel.activated = localList[i]
+                listener.callback.updateNotification(cellInfoModel)
+            }
+                return listener;
         }
 
         override fun onCellInfoChanged(cellInfo: MutableList<CellInfo>?) {
@@ -25,9 +42,18 @@ class MyPhoneStateListener {
                 return
             for (i in 0 until cellInfo.size) {
                 val cellInfoModel = CellInfoModel()
-                cellInfoModel.operator = cellInfo[i].cellIdentity.operatorAlphaShort.toString()
+                for(j in localList.indices){
+                    if((localList[j] as SubscriptionInfo).mncString == EnumConverter.takeInfo(cellInfo[i].cellIdentity.toString(), "mMnc")){
+                        cellInfoModel.operator = (localList[j] as SubscriptionInfo).displayName.toString()
+//                        cellInfoModel.id = j
+                        }
+                }
+                if (cellInfoModel.operator.isNullOrBlank()) continue
                 cellInfoModel.rscp = EnumConverter.takeInfo(cellInfo[i].toString(), "rscp")
-                cellInfoModel.id = i
+                cellInfoModel.connected = cellInfo[i].cellConnectionStatus > 0
+                cellInfoModel.activated = cellInfo[i].isRegistered
+                cellInfoModel.mnc = Integer.parseInt(EnumConverter.takeInfo(cellInfo[i].cellIdentity.toString(), "mnc"))
+                cellInfoModel.mEarfcn = Integer.parseInt(EnumConverter.takeInfo(cellInfo[i].cellIdentity.toString(), "mEarfcn"))
                 callback.updateNotification(cellInfoModel)
             }
             Log.e("TAG", "onCellInfoChanged: " + cellInfo)
@@ -40,10 +66,11 @@ class MyPhoneStateListener {
             for (i in 0 until signalStrength.cellSignalStrengths.size) {
                 val cellInfoModel = CellInfoModel()
                 cellInfoModel.rssi = signalStrength.cellSignalStrengths[i].dbm.toString() + "dbm"
+                cellInfoModel.activated = true
                 cellInfoModel.id = i;
                 callback.updateNotification(cellInfo = cellInfoModel)
             }
-            Log.e("TAG", "onSignalStrengthsChanged: " + signalStrength)
+            Log.e("TAG", "onSignalStrengthsChanged: " + signalStrength.toString())
         }
 
         override fun onCellLocationChanged(location: CellLocation?) {
@@ -53,11 +80,21 @@ class MyPhoneStateListener {
 
         override fun onServiceStateChanged(serviceState: ServiceState?) {
             super.onServiceStateChanged(serviceState)
-//            val cellInfoModel = CellInfoModel()
-//            cellInfoModel.technology =
-//                EnumConverter.takeInfo(serviceState.toString(), "accessNetworkTechnology")
-//            callback.updateNotification(cellInfo = cellInfoModel)
-            Log.e("TAG", "onServiceStateChanged: " + serviceState)
+            serviceState?.let {
+                for (i in 0 until serviceState.networkRegistrationInfoList.size) {
+                    val cellInfoModel = CellInfoModel()
+                    cellInfoModel.technology =
+                        EnumConverter.takeInfo(serviceState.toString(), "accessNetworkTechnology")
+                    cellInfoModel.operator =
+                        serviceState.networkRegistrationInfoList[i].cellIdentity?.operatorAlphaShort.toString()
+                    cellInfoModel.connected =
+                        serviceState.networkRegistrationInfoList[i].availableServices.contains(2)
+                    cellInfoModel.activated = true
+                    Log.e("TAG", "NEW CELL ID | SERVICE STATE: " + serviceState.networkRegistrationInfoList[i].availableServices)
+                    if (!cellInfoModel.operator.isNullOrBlank())
+                        callback.updateNotification(cellInfo = cellInfoModel)
+                }
+            }
         }
 
         override fun onMessageWaitingIndicatorChanged(mwi: Boolean) {
@@ -94,9 +131,10 @@ class MyPhoneStateListener {
         override fun onDataActivity(direction: Int) {
             super.onDataActivity(direction)
             Log.e(TAG, "onDataActivity: " + EnumConverter.convertDataActivityEnum(direction))
-//            val cellInfoModel = CellInfoModel()
-//            cellInfoModel.connected = direction != 0
-//            callback.updateNotification(cellInfo = cellInfoModel)
+            val cellInfoModel = CellInfoModel()
+            cellInfoModel.connected = direction != 0
+            cellInfoModel.activated = true
+            callback.updateNotification(cellInfo = cellInfoModel)
         }
 
         override fun onCallDisconnectCauseChanged(
@@ -168,6 +206,10 @@ class MyPhoneStateListener {
                     LISTEN_CELL_LOCATION or
                     LISTEN_SERVICE_STATE or
                     LISTEN_ACTIVE_DATA_SUBSCRIPTION_ID_CHANGE or
+                    0x00002000 or //LISTEN_DATA_CONNECTION_REAL_TIME_INFO
+                    0x00040000 or //LISTEN_DATA_ACTIVATION_STATE
+                    LISTEN_DISPLAY_INFO_CHANGED or
+//                    0x00000200 or //LISTEN_ALWAYS_REPORTED_SIGNAL_STRENGTH //CANNOT USE THIS
 //                    LISTEN_BARRING_INFO //CANNOT USE THIS
 //                    LISTEN_CALL_DISCONNECT_CAUSES //CANNOT USE THIS
                     LISTEN_CALL_STATE or
