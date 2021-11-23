@@ -18,7 +18,7 @@ class TelephonyService : Service(), NotificationUpdater {
 
     private val TAG = "TAG"
     private val thread = Thread()
-    private lateinit var currentCellInfo: ArrayList<CellInfoModel>
+    private lateinit var currentCellInfo: CellInfoModel
 
     override fun onBind(p0: Intent?): IBinder? {
         return null //not supporting binder service
@@ -52,13 +52,13 @@ class TelephonyService : Service(), NotificationUpdater {
         super.onDestroy()
     }
 
-    override fun askSimCount(): Int {
-        thread.run {
-            return if (this@TelephonyService::currentCellInfo.isInitialized)
-                currentCellInfo.size
-            else 0
-        }
-    }
+//    override fun askSimCount(): Int {
+//        thread.run {
+//            return if (this@TelephonyService::currentCellInfo.isInitialized)
+//                currentCellInfo.size
+//            else 0
+//        }
+//    }
 
     override fun updateNotification(cellInfo: CellInfoModel) {
         thread.run {
@@ -70,12 +70,7 @@ class TelephonyService : Service(), NotificationUpdater {
                         currentCellInfo
                     )
                 )
-
-//            if (cellInfo.activated == null || !cellInfo.activated!!) {
-                updateCurrentList(cellInfo)
-//            } else {
-//                updateActivatedItem(cellInfo)
-//            }
+                updateActivatedItem(cellInfo)
             val mNotificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
             mNotificationManager.notify(
                 113,
@@ -87,47 +82,43 @@ class TelephonyService : Service(), NotificationUpdater {
     private fun updateActivatedItem(cellInfo: CellInfoModel) {
         thread.run {
             if (!this@TelephonyService::currentCellInfo.isInitialized) {
-                currentCellInfo = ArrayList()
-                currentCellInfo.add(cellInfo)
+                currentCellInfo = cellInfo
+//                currentCellInfo.add(cellInfo)
                 return
             }
-            for (i in 0 until currentCellInfo.size) {
-                if (currentCellInfo[i].activated != null && currentCellInfo[i].activated!!) {
-                    var info = CellInfoModel(currentCellInfo[i])
-                    info.updateInfo(cellInfo)
-                    currentCellInfo.removeAt(i)
-                    currentCellInfo.add(i, info)
-                    break
-                }
+            if (currentCellInfo.activated != null && currentCellInfo.activated!!) {
+                var info = CellInfoModel(currentCellInfo)
+                info.updateInfo(cellInfo)
+                currentCellInfo = cellInfo
             }
         }
 
     }
 
-    private fun updateCurrentList(cellInfo: CellInfoModel) {
-//        if(cellInfo.id == null) return
-        thread.run {
-            if (!this@TelephonyService::currentCellInfo.isInitialized) {
-                currentCellInfo = ArrayList()
-                currentCellInfo.add(cellInfo)
-                return
-            }
-            var found = false
-            for (i in 0 until currentCellInfo.size) {
-                found = false
-                if (currentCellInfo[i].isTheSameAs(cellInfo)) {
-                    found = true
-                    val info = CellInfoModel(currentCellInfo[i])
-                    info.updateInfo(cellInfo)
-                    currentCellInfo.removeAt(i)
-                    currentCellInfo.add(i, info)
-                    break
-                }
-            }
-            if (!found && !cellInfo.operator.isNullOrBlank())
-                currentCellInfo.add(cellInfo)
+//    private fun updateCurrentList(cellInfo: CellInfoModel) {
+////        if(cellInfo.id == null) return
+//        thread.run {
+//            if (!this@TelephonyService::currentCellInfo.isInitialized) {
+//                currentCellInfo = ArrayList()
+//                currentCellInfo.add(cellInfo)
+//                return
+//            }
+//            var found = false
+//            for (i in 0 until currentCellInfo.size) {
+//                found = false
+//                if (currentCellInfo[i].isTheSameAs(cellInfo)) {
+//                    found = true
+//                    val info = CellInfoModel(currentCellInfo[i])
+//                    info.updateInfo(cellInfo)
+//                    currentCellInfo.removeAt(i)
+//                    currentCellInfo.add(i, info)
+//                    break
+//                }
+//            }
+//            if (!found && !cellInfo.operator.isNullOrBlank())
+//                currentCellInfo.add(cellInfo)
+//
+//        }
 
-        }
-
-    }
+//    }
 }

@@ -18,7 +18,6 @@ import com.google.gson.Gson
 class NotificationMaker {
     companion object {
         var channelId: String = ""
-        val adapter: CellItemAdapterForNotification = CellItemAdapterForNotification()
 
         fun makeNotification(context: Context): Notification {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && channelId == "")
@@ -41,7 +40,7 @@ class NotificationMaker {
             return notification
         }
 
-        fun makeNotification(context: Context, cellInfo: ArrayList<CellInfoModel>): Notification {
+        fun makeNotification(context: Context, cellInfo: CellInfoModel): Notification {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && channelId == "")
                 channelId = createNotificationChannel(
                     context = context,
@@ -53,20 +52,17 @@ class NotificationMaker {
 
             val contentView = RemoteViews(context.packageName, R.layout.root_notification_view)
             contentView.removeAllViews(R.id.ll_root)
-            for (i in 0 until cellInfo.size) {
                 val innerContentView = RemoteViews(context.packageName, R.layout.notification_view)
-                innerContentView.setTextViewText(R.id.textView_operator, "اپراتور: " + cellInfo[i].operator + " " + cellInfo[i].id)
-                innerContentView.setTextViewText(R.id.textView_rssi, "قدرت سیگنال: " + cellInfo[i].rssi)
-                innerContentView.setTextViewText(R.id.textView_rsrq, "توان اتصال: " + cellInfo[i].rscp)
-                innerContentView.setTextViewText(R.id.textView_technology, "نوع اتصال: " + cellInfo[i].technology)
-                if(cellInfo[i].connected != null && cellInfo[i].connected == true){
+                innerContentView.setTextViewText(R.id.textView_operator, "اپراتور پیشفرض: " + cellInfo.operator + " " + cellInfo.id)
+                innerContentView.setTextViewText(R.id.textView_rssi, "قدرت سیگنال: " + cellInfo.rssi)
+                innerContentView.setTextViewText(R.id.textView_rsrq, "توان اتصال: " + cellInfo.rscp)
+                innerContentView.setTextViewText(R.id.textView_technology, "نوع اتصال: " + cellInfo.technology)
+                if(cellInfo.connected != null && cellInfo.connected == true){
                     innerContentView.setImageViewResource(R.id.imageView_connection_status, R.drawable.indicator_on)
                 } else {
                     innerContentView.setImageViewResource(R.id.imageView_connection_status, R.drawable.indicator_off)
                 }
                 contentView.addView(R.id.ll_root, innerContentView)
-            }
-
 
             val notification = notificationBuilder.setOngoing(true)
                 .setSmallIcon(R.mipmap.ic_launcher)
