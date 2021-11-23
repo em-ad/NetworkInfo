@@ -15,6 +15,8 @@ class CellInfoModel() : Serializable {
         this.activated = cellInfo.activated
         this.mEarfcn = cellInfo.mEarfcn
         this.mnc = cellInfo.mnc
+        this.latitude = cellInfo.latitude
+        this.longitude = cellInfo.longitude
     }
 
     fun updateInfo(cellInfo: CellInfoModel) {
@@ -36,6 +38,10 @@ class CellInfoModel() : Serializable {
             this.mEarfcn = cellInfo.mEarfcn
         if (cellInfo.mnc != null && cellInfo.mnc != -1)
             this.mnc = cellInfo.mnc
+        if (cellInfo.latitude != null)
+            this.latitude = cellInfo.latitude
+        if (cellInfo.longitude != null)
+            this.longitude = cellInfo.longitude
     }
 
     fun isTheSameAs(cellInfo: CellInfoModel): Boolean {
@@ -54,4 +60,6 @@ class CellInfoModel() : Serializable {
     var activated: Boolean? = null //Sim In Use for Data
     var mnc: Int? = null //Sim In Use for Data
     var mEarfcn: Int? = null
+    var latitude: Double? = null
+    var longitude: Double? = null
 }

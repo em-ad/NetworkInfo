@@ -56,6 +56,8 @@ class NotificationMaker {
                 innerContentView.setTextViewText(R.id.textView_rssi, "قدرت سیگنال: " + cellInfo.rssi)
                 innerContentView.setTextViewText(R.id.textView_rsrq, "توان اتصال: " + cellInfo.rsrq)
                 innerContentView.setTextViewText(R.id.textView_technology, "نوع اتصال: " + cellInfo.technology)
+                innerContentView.setTextViewText(R.id.textView_lat, "عرض جفرافیایی: " + cellInfo.latitude)
+                innerContentView.setTextViewText(R.id.textView_lng, "طول جفرافیایی: " + cellInfo.longitude)
                 if(cellInfo.connected != null && cellInfo.connected == true){
                     innerContentView.setImageViewResource(R.id.imageView_connection_status, R.drawable.indicator_on)
                 } else {

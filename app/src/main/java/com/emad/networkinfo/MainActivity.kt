@@ -60,6 +60,11 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onBackPressed() {
+        super.onBackPressed()
+        stopService(Intent(applicationContext, TelephonyService::class.java))
+    }
+
     @SuppressLint("HardwareIds", "MissingPermission", "NewApi")
     private fun extractCellData() {
         val localSubscriptionManager = SubscriptionManager.from(this)
@@ -84,19 +89,6 @@ class MainActivity : ComponentActivity() {
                 data.add("cqi: " + takeInfo(it[i].toString(), "cqi"))
             }
         }
-
-//        if (localSubscriptionManager.activeSubscriptionInfoCount > 1) {
-//            //if there are two sims in dual sim mobile
-//            val localList: List<*> = localSubscriptionManager.activeSubscriptionInfoList
-//            val simInfo = localList[0] as SubscriptionInfo
-//            val simInfo1 = localList[1] as SubscriptionInfo
-//            val sim1 = simInfo.displayName.toString()
-//            val sim2 = simInfo1.displayName.toString()
-//
-//            Log.e("TAG", "extractCellData: $sim1 $sim2")
-//        }//        telephonyMgr.carrierConfig.keySet().forEach {
-//            Log.e("TAG", "extractCellData: " + it )
-//        }
     }
 
     override fun onStop() {

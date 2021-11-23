@@ -9,6 +9,9 @@ import android.telephony.*
 import android.telephony.PhoneStateListener.*
 
 import android.app.NotificationManager
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
 import android.util.Log
 import com.google.gson.Gson
 
@@ -39,10 +42,20 @@ class TelephonyService : Service(), NotificationUpdater {
                 NotificationMaker.makeNotification(applicationContext)
             )
             val telephonyMgr = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-            Log.e(TAG, "onStartCommand: " + telephonyMgr.allCellInfo)
             telephonyMgr.listen(
                 MyPhoneStateListener.addListener(this@TelephonyService, this@TelephonyService),
                 MyPhoneStateListener.listenEvents()
+            )
+            val mLocationManager = getSystemService(LOCATION_SERVICE) as LocationManager
+            val locationListener = LocationListener {
+                currentCellInfo.latitude = it.latitude
+                currentCellInfo.longitude = it.longitude
+            }
+            mLocationManager.requestLocationUpdates(
+                LocationManager.GPS_PROVIDER,
+                100,
+                0.001f,
+                locationListener
             )
         }
         return super.onStartCommand(intent, flags, startId)
@@ -64,12 +77,7 @@ class TelephonyService : Service(), NotificationUpdater {
         thread.run {
 
             if (this@TelephonyService::currentCellInfo.isInitialized)
-                Log.e(
-                    TAG,
-                    "updateNotification: " + Gson().toJson(cellInfo) + " among " + Gson().toJson(
-                        currentCellInfo
-                    )
-                )
+                Log.e(TAG, "updateNotification: " + Gson().toJson(cellInfo) + " among " + Gson().toJson(currentCellInfo))
                 updateActivatedItem(cellInfo)
             val mNotificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
             mNotificationManager.notify(

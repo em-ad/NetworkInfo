@@ -88,6 +88,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/ll_2"
+        android:id="@+id/ll_3"
         android:orientation="horizontal"
         android:weightSum="2"
         app:layout_constraintEnd_toEndOf="parent"
@@ -113,6 +114,41 @@
             android:layout_weight="1"
             android:fontFamily="@font/app_font"
             android:text="میزان آنتن:"
+            android:gravity="right"
+            android:textColor="@color/white"
+            android:textSize="13sp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/ll_3"
+        android:orientation="horizontal"
+        android:weightSum="2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ll_1">
+
+        <TextView
+            android:layout_width="0dp"
+            android:id="@+id/textView_lat"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="right"
+            android:fontFamily="@font/app_font"
+            android:text="طول جفرافیایی: "
+            android:visibility="visible"
+            android:textColor="@color/white"
+            android:textSize="13sp" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView_lng"
+            android:layout_weight="1"
+            android:fontFamily="@font/app_font"
+            android:text="عرض جفرافیایی: "
             android:gravity="right"
             android:textColor="@color/white"
             android:textSize="13sp" />
