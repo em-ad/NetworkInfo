@@ -13,7 +13,7 @@ class MyPhoneStateListener {
     companion object listener : PhoneStateListener() {
         private const val TAG = "TAG"
         lateinit var callback: NotificationUpdater
-        lateinit var localList: List<SubscriptionInfo>
+        var neighbouring: ArrayList<CellInfoModel> = ArrayList()
 
         fun addListener(context: Context, callback: NotificationUpdater): PhoneStateListener {
             this.callback = callback
@@ -40,14 +40,23 @@ class MyPhoneStateListener {
                 return
             for (i in 0 until cellInfo.size) {
                 val cellInfoModel = CellInfoModel()
-//                for(j in localList.indices){
-//                    if((localList[j] as SubscriptionInfo).mncString == EnumConverter.takeInfo(cellInfo[i].cellIdentity.toString(), "mMnc")){
-//                        cellInfoModel.operator = (localList[j] as SubscriptionInfo).displayName.toString()
-////                        cellInfoModel.id = j
-//                        }
-//                }
                 cellInfoModel.operator = EnumConverter.takeInfo(cellInfo[i].toString(), "mAlphaShort")
-                if (cellInfoModel.operator.isNullOrBlank()) continue
+                if (cellInfoModel.operator.isNullOrBlank()) {
+                    val neighbour = CellInfoModel()
+                    neighbour.rsrq = EnumConverter.takeInfo(cellInfo[i].toString(), "rsrq")
+                    EnumConverter.takeInfo(cellInfo[i].toString(), "level")?.let{
+                        neighbour.level = EnumConverter.convertLevel(it)
+                    }
+                    neighbour.connected = cellInfo[i].cellConnectionStatus > 0
+                    neighbour.activated = cellInfo[i].isRegistered
+                    if(EnumConverter.takeInfo(cellInfo[i].cellIdentity.toString(), "mMnc") != "null")
+                    neighbour.mnc = Integer.parseInt(EnumConverter.takeInfo(cellInfo[i].cellIdentity.toString(), "mMnc"))
+                    if(EnumConverter.takeInfo(cellInfo[i].cellIdentity.toString(), "mEarfcn") != "null")
+                    neighbour.mEarfcn = Integer.parseInt(EnumConverter.takeInfo(cellInfo[i].cellIdentity.toString(), "mEarfcn"))
+                    if(!neighbouring.contains(neighbour))
+                    neighbouring.add(neighbour)
+                    continue
+                }
                 cellInfoModel.rsrq = EnumConverter.takeInfo(cellInfo[i].toString(), "rsrq")
                 EnumConverter.takeInfo(cellInfo[i].toString(), "level")?.let{
                     cellInfoModel.level = EnumConverter.convertLevel(it)
@@ -169,11 +178,6 @@ class MyPhoneStateListener {
             super.onDisplayInfoChanged(telephonyDisplayInfo)
             Log.e(TAG, "onDisplayInfoChanged: " + telephonyDisplayInfo)
         }
-
-//        override fun onEmergencyNumberListChanged(emergencyNumberList: MutableMap<Int, MutableList<EmergencyNumber>>) {
-//            super.onEmergencyNumberListChanged(emergencyNumberList)
-//            Log.e(TAG, "onEmergencyNumberListChanged: " + emergencyNumberList )
-//        }
 
         override fun onActiveDataSubscriptionIdChanged(subId: Int) {
             super.onActiveDataSubscriptionIdChanged(subId)

@@ -77,7 +77,7 @@ class TelephonyService : Service(), NotificationUpdater {
         thread.run {
 
             if (this@TelephonyService::currentCellInfo.isInitialized)
-                Log.e(TAG, "updateNotification: " + Gson().toJson(cellInfo) + " among " + Gson().toJson(currentCellInfo))
+                Log.e(TAG, "neighbors: " + Gson().toJson(MyPhoneStateListener.neighbouring))
                 updateActivatedItem(cellInfo)
             val mNotificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
             mNotificationManager.notify(
